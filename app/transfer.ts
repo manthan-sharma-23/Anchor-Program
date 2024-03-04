@@ -1,11 +1,11 @@
 // send sol to any account on devnet / testnet
 
-
 import {
   LAMPORTS_PER_SOL,
   PublicKey,
   SystemProgram,
   Transaction,
+  TransactionInstruction,
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
 import { connection, signer } from "./connection";
@@ -18,11 +18,12 @@ async function transfer(): Promise<void> {
   try {
     const reciever = new PublicKey(recieverAddress);
 
+    // fill lamports if necessary
     await requestAndConfirmAirdropIfRequired(
       connection,
       signer.publicKey,
-      10 * LAMPORTS_PER_SOL,
-      5 * LAMPORTS_PER_SOL
+      (solToSend + 20) * LAMPORTS_PER_SOL,
+      solToSend * LAMPORTS_PER_SOL
     );
 
     const transaction = new Transaction();
@@ -32,13 +33,24 @@ async function transfer(): Promise<void> {
       lamports: solToSend * LAMPORTS_PER_SOL,
     });
 
-    transaction.add(sendSolTransaction);
+    // const sendSolTransaction = new TransactionInstruction({
+    //   keys: [
+    //     {
+    //         pubkey:signer.publicKey,
+    //         isSigner:
+    //     }
+    //   ],
+    //   programId: SystemProgram.programId,
+    // });
+
+    const tx = transaction.add(sendSolTransaction);
 
     const signature = await sendAndConfirmTransaction(connection, transaction, [
       signer,
     ]);
 
-    console.log(`Sent SOL ${solToSend} to ${recieverAddress}`);
+    console.log(`Sent SOL ${solToSend} to ${recieverAddress} `);
+    console.log(`Transaction address : ${signature}`);
   } catch (error) {
     console.log(error);
   }
